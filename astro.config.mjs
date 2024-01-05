@@ -4,9 +4,11 @@ import { defineConfig } from 'astro/config'
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://httky.github.io',
   base: process.env.NODE_ENV === 'production' ? '/ripple-effect/wip/' : '/',
   outDir: './docs/wip',
+  build: {
+    assets: 'assets', // NOTE: GitHub Pagesで `_astro` アンダーバーで始まるディレクトリが認識されないっぽいので変更
+  },
   vite: {
     plugins: [glsl()],
     build: { // ビルド時にconsoleを削除
