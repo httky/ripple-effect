@@ -17,7 +17,9 @@ export class Canvas {
     uVelocityAttenuation: number
     uDistanceScale: number
     uHeightAttenuation: number
+    BUFFER_SCALE: number
   }
+  BUFFER_SCALE: number
   previousTime: number
   timeScale: number
   uTime: number
@@ -42,7 +44,9 @@ export class Canvas {
       uVelocityAttenuation: 0.9, // 加速度減衰
       uDistanceScale: 50.0, // カーソルとの距離係数
       uHeightAttenuation: 0.99, // 高さの減衰
+      BUFFER_SCALE: 0.25, // screenの解像度に対するfarmebufferのサイズ
     }
+    this.BUFFER_SCALE = this.params.BUFFER_SCALE
     this.previousTime = 0 // 直前のフレームのタイムスタンプ
     this.timeScale = 1.0 // 時間の進み方に対するスケール
     this.uTime = 0.0 // uniform 変数 time 用
@@ -158,7 +162,7 @@ export class Canvas {
     const material = new THREE.RawShaderMaterial({
       uniforms: {
         uTexture: { value: null },
-        resolution: { value: [this.screen.width, this.screen.height] },
+        resolution: { value: [this.screen.width * this.BUFFER_SCALE, this.screen.height * this.BUFFER_SCALE] },
         mouse: { value: this.uMouse },
         press: { value: this.uMouse },
         velocitySpeed: { value: this.params.uVelocitySpeed },
@@ -178,7 +182,7 @@ export class Canvas {
    * createRenderTarget
    */
   createRenderTarget() {
-    const renderTarget = new THREE.WebGLRenderTarget(this.screen.width, this.screen.height, {
+    const renderTarget = new THREE.WebGLRenderTarget(this.screen.width * this.BUFFER_SCALE, this.screen.height * this.BUFFER_SCALE, {
       minFilter: THREE.NearestFilter,
       magFilter: THREE.NearestFilter,
       wrapS: THREE.ClampToEdgeWrapping,
@@ -220,6 +224,13 @@ export class Canvas {
       .onChange(() => {
         this.offscreenMesh.material.uniforms.heightAttenuation.value = this.params.uHeightAttenuation
       })
+    gui
+      .add(this.params, 'BUFFER_SCALE', 0.1, 1.0)
+      .step(0.01)
+      .onChange(() => {
+        this.BUFFER_SCALE = this.params.BUFFER_SCALE
+        this.resize()
+      })
 
     return gui
   }
@@ -228,10 +239,14 @@ export class Canvas {
    */
   resize() {
     this.screen = this.getScreenSize()
-    this.offscreenMesh.material.uniforms.resolution.value = [this.screen.width, this.screen.height]
+    const buffer = {
+      width: this.screen.width * this.BUFFER_SCALE,
+      height: this.screen.height * this.BUFFER_SCALE
+    }
+    this.offscreenMesh.material.uniforms.resolution.value = [buffer.width, buffer.height]
     this.renderer.setSize(this.screen.width, this.screen.height)
-    this.offscreenRenderTarget.setSize(this.screen.width, this.screen.height)
-    this.offscreenRenderTarget2.setSize(this.screen.width, this.screen.height)
+    this.offscreenRenderTarget.setSize(buffer.width, buffer.height)
+    this.offscreenRenderTarget2.setSize(buffer.width, buffer.height)
     this.camera.aspect = this.screen.aspect
     this.camera.updateProjectionMatrix()
   }
