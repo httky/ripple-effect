@@ -4,8 +4,8 @@ import { defineConfig } from 'astro/config'
 
 // https://astro.build/config
 export default defineConfig({
-  base: process.env.NODE_ENV === 'production' ? '/ripple-effect/wip/' : '/',
-  outDir: './docs/wip',
+  base: process.env.NODE_ENV === 'production' ? '/ripple-effect/' : '/',
+  outDir: './docs',
   build: {
     assets: 'assets', // NOTE: GitHub Pagesで `_astro` アンダーバーで始まるディレクトリが認識されないっぽいので変更
   },
