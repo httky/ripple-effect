@@ -183,6 +183,7 @@ export class Canvas {
       magFilter: THREE.NearestFilter,
       wrapS: THREE.ClampToEdgeWrapping,
       wrapT: THREE.ClampToEdgeWrapping,
+      type: THREE.FloatType,
     })
     return renderTarget
   }
