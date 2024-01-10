@@ -18,7 +18,7 @@ void main() {
     // カーソルとの距離が近い場所に高さを追加するための値を算出
     float mouseDistance = max(1.0 - length(texCoord - mouse) * distanceScale, 0.0);
 
-    // ラプラシアンフィルタで加速度を求める
+    // ラプラシアンフィルタで加速度を求める 4近傍
     vec2 fragment = 1.0 / resolution;
     vec4 current = texture2D(uTexture, vTexCoord);
     vec4 top     = texture2D(uTexture, vTexCoord + vec2(0.0, 1.0) * fragment);
