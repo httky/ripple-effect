@@ -17,6 +17,7 @@ export class Canvas {
     uVelocityAttenuation: number
     uDistanceScale: number
     uHeightAttenuation: number
+    uUseImage: boolean
     BUFFER_SCALE: number
   }
   BUFFER_SCALE: number
@@ -37,6 +38,7 @@ export class Canvas {
   gui: GUI
   bufferIndex: number
   buffers: THREE.WebGLRenderTarget<THREE.Texture>[]
+  imageTexture?: THREE.Texture
   constructor({ canvas }: { canvas: HTMLCanvasElement }) {
     this.screen = this.getScreenSize()
     this.params = {
@@ -44,6 +46,7 @@ export class Canvas {
       uVelocityAttenuation: 0.9, // 加速度減衰
       uDistanceScale: 50.0, // カーソルとの距離係数
       uHeightAttenuation: 0.99, // 高さの減衰
+      uUseImage: true, // 画像テクスチャを使うか
       BUFFER_SCALE: 0.25, // screenの解像度に対するfarmebufferのサイズ
     }
     this.BUFFER_SCALE = this.params.BUFFER_SCALE
@@ -77,8 +80,12 @@ export class Canvas {
   /**
    * setup
    */
-  setup() {
+  async setup() {
     this.attachEvents()
+    this.imageTexture = await this.loadAsset('unsplash.jpg')
+    this.mesh.material.uniforms.uImageTexture.value = this.imageTexture
+    this.mesh.material.uniforms.uCoveredScale.value = this.calcCoveredScale(this.imageTexture?.userData.aspect || 0)
+
     this.renderer.setAnimationLoop(this.update.bind(this))
   }
   /**
@@ -113,6 +120,24 @@ export class Canvas {
     return { width, height, aspect: width / height }
   }
   /**
+   * loadAsset
+   */
+  async loadAsset(filePath: string) {
+    const loader = new THREE.TextureLoader()
+    loader.setPath(import.meta.env.BASE_URL)
+    const texture = await loader.loadAsync(filePath)
+    texture.userData.aspect = texture.source.data.width / texture.source.data.height
+    return texture
+  }
+  /**
+   * calcCoveredScale
+   */
+  calcCoveredScale(imageAspect: number) {
+    const screenAspect = this.screen.aspect
+    // imageAspectに対してscreenAspectが縦長か
+    return screenAspect < imageAspect ? [screenAspect / imageAspect, 1] : [1, imageAspect / screenAspect]
+  }
+  /**
    * createRenderer
    */
   createRenderer(canvas: HTMLCanvasElement) {
@@ -145,6 +170,9 @@ export class Canvas {
     const material = new THREE.RawShaderMaterial({
       uniforms: {
         uTexture: { value: this.offscreenRenderTarget.texture },
+        uImageTexture: { value: this.imageTexture },
+        uCoveredScale: { value: this.calcCoveredScale(this.imageTexture?.userData.aspect || 0) },
+        uUseImage: { value: this.params.uUseImage },
       },
       vertexShader,
       fragmentShader,
@@ -231,6 +259,12 @@ export class Canvas {
         this.BUFFER_SCALE = this.params.BUFFER_SCALE
         this.resize()
       })
+    gui
+      .add(this.params, 'uUseImage')
+      .name('useImage')
+      .onChange(() => {
+        this.mesh.material.uniforms.uUseImage.value = this.params.uUseImage
+      })
 
     return gui
   }
@@ -243,6 +277,7 @@ export class Canvas {
       width: this.screen.width * this.BUFFER_SCALE,
       height: this.screen.height * this.BUFFER_SCALE
     }
+    this.mesh.material.uniforms.uCoveredScale.value = this.calcCoveredScale(this.imageTexture?.userData.aspect || 0)
     this.offscreenMesh.material.uniforms.resolution.value = [buffer.width, buffer.height]
     this.renderer.setSize(this.screen.width, this.screen.height)
     this.offscreenRenderTarget.setSize(buffer.width, buffer.height)

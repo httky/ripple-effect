@@ -20,6 +20,13 @@ npm ci
 - `dev` ローカルサーバ起動
 - `build` ビルド
 
+## Reference
+- GLSLスクール
+- [nemutas/laplacian-ripple](https://github.com/nemutas/laplacian-ripple)
+
+## Other
+- [Texture from Unsplash](https://unsplash.com/ja/%E5%86%99%E7%9C%9F/%E9%87%8E%E5%8E%9F%E3%81%AE%E5%B0%8F%E3%81%95%E3%81%AA%E7%99%BD%E3%81%84%E8%8A%B1%E3%81%AE%E6%9D%9F-pe79M257ctk)
+
 # Astro Starter Kit: Basics
 
 ```sh
