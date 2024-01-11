@@ -7,6 +7,7 @@ import GUI from 'lil-gui'
 
 // TODO: コード整理
 export class Canvas {
+  canvas: HTMLCanvasElement
   screen: {
     width: number
     height: number
@@ -40,12 +41,13 @@ export class Canvas {
   buffers: THREE.WebGLRenderTarget<THREE.Texture>[]
   imageTexture?: THREE.Texture
   constructor({ canvas }: { canvas: HTMLCanvasElement }) {
+    this.canvas = canvas
     this.screen = this.getScreenSize()
     this.params = {
       uVelocitySpeed: 0.5, // 加速度係数
       uVelocityAttenuation: 0.9, // 加速度減衰
       uDistanceScale: 50.0, // カーソルとの距離係数
-      uHeightAttenuation: 0.99, // 高さの減衰
+      uHeightAttenuation: 0.95, // 高さの減衰
       uUseImage: true, // 画像テクスチャを使うか
       BUFFER_SCALE: 0.25, // screenの解像度に対するfarmebufferのサイズ
     }
@@ -99,18 +101,18 @@ export class Canvas {
    */
   attachEvents() {
     window.addEventListener('resize', this.onResize.bind(this), false)
-    window.addEventListener('pointerdown', this.onPointerdown.bind(this), false)
-    window.addEventListener('pointermove', this.onPointermove.bind(this), false)
-    window.addEventListener('pointerup', this.onPointerup.bind(this), false)
+    // this.canvas.addEventListener('pointerdown', this.onPointerdown.bind(this), false)
+    this.canvas.addEventListener('pointermove', this.onPointermove.bind(this), false)
+    // this.canvas.addEventListener('pointerup', this.onPointerup.bind(this), false)
   }
   /**
    * detachEvents
    */
   detachEvents() {
     window.removeEventListener('resize', this.onResize, false)
-    window.removeEventListener('pointerdown', this.onPointerdown, false)
-    window.removeEventListener('pointermove', this.onPointermove, false)
-    window.removeEventListener('pointerup', this.onPointerup, false)
+    // this.canvas.removeEventListener('pointerdown', this.onPointerdown, false)
+    this.canvas.removeEventListener('pointermove', this.onPointermove, false)
+    // this.canvas.removeEventListener('pointerup', this.onPointerup, false)
   }
   /**
    * getScreenSize
@@ -307,7 +309,15 @@ export class Canvas {
     this.uMouse[0] = x
     this.uMouse[1] = -y
 
+    this.uPress = true
+    this.offscreenMesh.material.uniforms.press.value = this.uPress
+
     this.offscreenMesh.material.uniforms.mouse.value = this.uMouse
+
+    requestAnimationFrame(() => {
+      this.uPress = false
+      this.offscreenMesh.material.uniforms.press.value = this.uPress
+    })
   }
   /**
    * onPointerup
