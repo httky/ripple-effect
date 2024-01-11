@@ -268,6 +268,8 @@ export class Canvas {
         this.mesh.material.uniforms.uUseImage.value = this.params.uUseImage
       })
 
+    if (import.meta.env.MODE === 'production') gui.close()
+
     return gui
   }
   /**
